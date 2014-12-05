@@ -78,6 +78,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.gatein.portal</groupId>
+      <artifactId>exo.portal.component.web.oauth</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.gatein.shindig</groupId>
       <artifactId>shindig-common</artifactId>
       <type>jar</type>

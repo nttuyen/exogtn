@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2009 eXo Platform SAS.
+
+    This is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation; either version 2.1 of
+    the License, or (at your option) any later version.
+
+    This software is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this software; if not, write to the Free
+    Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
+-->
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd http://www.exoplaform.org/xml/ns/kernel_1_2.xsd"
+               xmlns="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd">
+
+  <component>
+    <key>org.gatein.security.oauth.consumer.OAuthService</key>
+    <type>org.gatein.security.oauth.consumer.impl.OAuthServiceImpl</type>
+    <init-params>
+      <value-param>
+        <name>oauthEndpoint</name>
+        <value>http://localhost:8080/portal/oauthEndpoint</value>
+      </value-param>
+    </init-params>
+  </component>
+  <component>
+    <key>org.gatein.security.oauth.consumer.OAuthConsumerRegistry</key>
+    <type>org.gatein.security.oauth.consumer.impl.OAuthConsumerRegistryImpl</type>
+    <init-params>
+      <value-param>
+        <name>prefixKey</name>
+        <value>${gatein.oauth.prefix:gatein.oauth}</value>
+      </value-param>
+    </init-params>
+  </component>
+
+  <external-component-plugins>
+    <!-- The full qualified name of the ExtensibleFilter -->
+    <target-component>org.exoplatform.web.filter.ExtensibleFilter</target-component>
+    <component-plugin>
+      <!-- The name of the plugin -->
+      <name>Oauth callback Filter Definition Plugin</name>
+      <!-- The name of the method to call on the ExtensibleFilter in order to register the FilterDefinitions -->
+      <set-method>addFilterDefinitions</set-method>
+      <!-- The full qualified name of the FilterDefinitionPlugin -->
+      <type>org.exoplatform.web.filter.FilterDefinitionPlugin</type>
+      <init-params>
+        <object-param>
+          <name>Sample Filter Definition</name>
+          <object type="org.exoplatform.web.filter.FilterDefinition">
+            <!-- The filter instance -->
+            <field name="filter">
+              <object type="org.gatein.security.oauth.consumer.filter.OAuthCallbackFilter"/>
+            </field>
+            <!-- The mapping to use -->
+            <!-- WARNING: the mapping is expressed with regular expressions -->
+            <field name="patterns">
+              <collection type="java.util.ArrayList" item-type="java.lang.String">
+                <value>
+                  <string>/oauthEndpoint</string>
+                </value>
+              </collection>
+            </field>
+          </object>
+        </object-param>
+      </init-params>
+    </component-plugin>
+  </external-component-plugins>
+
+</configuration>

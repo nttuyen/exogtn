@@ -24,6 +24,7 @@
     <module>useridentity</module>
     <module>amd-js</module>
     <module>todomvc</module>
+    <module>oauth-portlets</module>
   </modules>
 
 </project>
