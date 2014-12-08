@@ -43,4 +43,9 @@ public interface AuthenticationRegistry {
 
     void removeClient(String sessionId);
 
+    void setAttributeOfClient(HttpServletRequest request, String attributeName, Object attributeValue);
+
+    Object getAttributeOfClient(HttpServletRequest request, String attributeName);
+
+    Object removeAttributeOfClient(HttpServletRequest request, String attributeName);
 }

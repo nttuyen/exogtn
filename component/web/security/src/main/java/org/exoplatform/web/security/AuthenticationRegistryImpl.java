@@ -104,6 +104,57 @@ public class AuthenticationRegistryImpl implements AuthenticationRegistry {
         return registry.get(sessionId);
     }
 
+    @Override
+    public void setAttributeOfClient(HttpServletRequest request, String attributeName, Object attributeValue) {
+        String sessionId = getSessionId(request);
+
+        Map<String, Object> attributesOfClient = getAllAttributesOfClient(sessionId);
+        attributesOfClient.put(attributeName, attributeValue);
+    }
+
+    @Override
+    public Object getAttributeOfClient(HttpServletRequest request, String attributeName) {
+        String sessionId = getSessionId(request);
+        Map<String, Object> attributesOfClient = registry.get(sessionId);
+
+        if (attributesOfClient == null) {
+            return null;
+        }
+
+        return attributesOfClient.get(attributeName);
+    }
+
+    @Override
+    public Object removeAttributeOfClient(HttpServletRequest request, String attributeName) {
+        String sessionId = getSessionId(request);
+
+        Map<String, Object> attributesOfClient = getAllAttributesOfClient(sessionId);
+
+        Object removedAttribute = attributesOfClient.remove(attributeName);
+
+        // Clear map if no more attributes are here.
+        if (attributesOfClient.size() == 0) {
+            removeClient(sessionId);
+        }
+
+        return removedAttribute;
+    }
+
+    private Map<String, Object> getAllAttributesOfClient(String sessionId) {
+        Map<String, Object> attributes = registry.get(sessionId);
+
+        if (attributes == null) {
+            attributes = new ConcurrentHashMap<String, Object>();
+            registry.putIfAbsent(sessionId, attributes);
+
+            if (log.isTraceEnabled()) {
+                log.trace("New entry created in AuthenticationRegistry for session " + sessionId);
+            }
+        }
+
+        return registry.get(sessionId);
+    }
+
     private String getSessionId(HttpServletRequest req) {
         return req.getSession().getId();
     }
