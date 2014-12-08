@@ -67,11 +67,6 @@ public class OAuthPortletExample extends GenericPortlet {
 
         } else {
             String consumerName = load;
-            HttpServletRequest req = Util.getPortalRequestContext().getRequest();
-            out.println("<h3>");
-            out.println("Load data from provider: " + consumerName);
-            out.println("</h3>");
-            out.println("<div>");
             String resourceURL = null;
             if(consumerName.equals("google")) {
                 resourceURL = GOOGLE_RESOURCE;
@@ -81,10 +76,17 @@ public class OAuthPortletExample extends GenericPortlet {
                 resourceURL = LINKEDIN_RESOURCE;
             }
 
+            HttpServletRequest req = Util.getPortalRequestContext().getRequest();
+            out.println("<h3>");
+            out.println("Load data from provider: " + consumerName);
+            out.println("</h3>");
+            out.println("<div> Resource URL: <strong>" + resourceURL + "</strong></div>");
+            out.println("<div>");
+
             PortalContainer container = PortalContainer.getInstance();
             OAuthConsumerRegistry registry = (OAuthConsumerRegistry)container.getComponentInstanceOfType(OAuthConsumerRegistry.class);
             OAuthService oauthService = (OAuthService)container.getComponentInstanceOfType(OAuthService.class);
-            OAuthTokenManager tokenManager = new SessionOAuthTokenManager(req);
+            OAuthTokenManager tokenManager = new SampleOAuthTokenManager();
             OAuthConsumer consumer = registry.getConsumer(consumerName);
             if(consumer == null) {
                 out.println("Can not find oauth consumer for name: " + consumerName);
@@ -110,7 +112,9 @@ public class OAuthPortletExample extends GenericPortlet {
                     redirectError.setParameter("hasError", "1");
                     accessor.setRedirectAfterError(redirectError.toString());
 
+                    accessor.saveOAuthState(req);
                     OAuthResponse resource = accessor.getProtectedResource("GET", resourceURL);
+                    accessor.clearOAuthState(req);
                     out.println(resource.getBody());
                 } catch (OAuthException ex) {
                     if(ex instanceof OAuthRedirectException) {

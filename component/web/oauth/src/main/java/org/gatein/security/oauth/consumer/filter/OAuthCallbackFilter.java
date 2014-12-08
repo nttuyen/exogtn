@@ -1,6 +1,7 @@
 package org.gatein.security.oauth.consumer.filter;
 
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.web.security.AuthenticationRegistry;
 import org.gatein.security.oauth.consumer.*;
 import org.gatein.security.oauth.consumer.exception.OAuthConsumerNotFoundException;
 import org.gatein.security.oauth.consumer.exception.OAuthErrorException;
@@ -25,50 +26,66 @@ public class OAuthCallbackFilter implements org.exoplatform.web.filter.Filter {
     public static final String PARAM_REDIRECT_TO = "redirectTo";
     public static final String PARAM_REDIRECT_AFTER_ERROR = "redirectAfterError";
 
+    public static final String REQUEST_TOKEN_KEY = "requestToken";
+    public static final String TOKEN_MANAGER_KEY = "tokenManager";
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         OAuthConsumerRegistry consumerRegistry = (OAuthConsumerRegistry)getContainer().getComponentInstanceOfType(OAuthConsumerRegistry.class);
+        AuthenticationRegistry authReg = (AuthenticationRegistry)getContainer().getComponentInstanceOfType(AuthenticationRegistry.class);
+
         HttpServletRequest req = (HttpServletRequest)request;
         HttpServletResponse res = (HttpServletResponse)response;
         HttpSession session = req.getSession();
 
         String state = req.getParameter("state");
         if(state == null) {
-            state = (String)session.getAttribute("OAUTH_STATE");
+            //. In case of oauth1, we will use requestToken as stateKey
+            state = req.getParameter("oauth_token");
         }
+
+        //. Load consumer info
         String consumerName = req.getParameter(PARAM_CONSUMER_NAME);
         OAuthConsumer consumer;
-        if(state == null) {
-            consumer = consumerRegistry.getConsumer(consumerName);
-            if(consumer == null) {
-                handleError(state, new OAuthConsumerNotFoundException("Can not find oauth consumer for name: " + consumerName, consumerName), req, res);
-                return;
-            } else {
-                state = initOAuthState(consumer, req, res);
-            }
-        } else {
-            consumerName = get(session, state, "consumerName");
-            consumer = consumerRegistry.getConsumer(consumerName);
-            if(consumer == null) {
-                handleError(state, new OAuthConsumerNotFoundException("Can not find oauth consumer for name: " + consumerName, consumerName), req, res);
-                return;
-            }
+        if(consumerName == null && state != null) {
+            consumerName = get(session, state, PARAM_CONSUMER_NAME);
+        }
+        consumer = consumerRegistry.getConsumer(consumerName);
+        if(consumer == null) {
+            handleError(state, new OAuthConsumerNotFoundException("Can not find oauth consumer for name: " + consumerName, consumerName), req, res);
+            return;
         }
 
-        String redirectTo = get(session, state, "redirectTo");
-
         OAuthService service = build(consumer);
-        OAuthTokenManager tokenManager = new SessionOAuthTokenManager(req);
+        Token token = null;
+        if(state == null) {
+            //. How to generate state
+            if(consumer.isOAuth2()) {
+                state = consumer.name + System.currentTimeMillis();
+            } else {
+                token = service.getRequestToken();
+                state = token.getToken();
+            }
+        } else {
+            token = (Token)authReg.getAttributeOfClient(req, state + "." + REQUEST_TOKEN_KEY);
+        }
+
+        OAuthTokenManager tokenManager = (OAuthTokenManager)authReg.getAttributeOfClient(req, state + "." + TOKEN_MANAGER_KEY);
+        if(tokenManager == null) {
+            tokenManager = new SessionOAuthTokenManager(req);
+        }
         if(tokenManager.getAccessToken(consumer) != null) {
-            System.out.println("AccessToken from session: " + tokenManager.getAccessToken(consumer));
-            clearState(session, state);
+            String redirectTo = req.getParameter(PARAM_REDIRECT_TO);
+
+            Utils.cleanAuthenticationRegistry(req, state);
+            clearOAuthState(session, state);
             redirect(redirectTo, res);
         }
 
-        String requestTokenKey = state + ".requestToken";
+        String requestTokenKey = state + "." + REQUEST_TOKEN_KEY;
         Object obj = session.getAttribute(requestTokenKey);
-        Token token = null;
 
+        //. Start process OAuth
         String verifierCode;
         if(consumer.isOAuth2()) {
             verifierCode = req.getParameter("code");
@@ -78,32 +95,31 @@ public class OAuthCallbackFilter implements org.exoplatform.web.filter.Filter {
         String error = req.getParameter("error");
 
         if(obj == null || (verifierCode == null && error == null)) {
-            if(consumer.isOAuth2()) {
-                session.setAttribute(requestTokenKey, new Integer(0));
-                token = null;
-            } else {
-                token = service.getRequestToken();
-                session.setAttribute(requestTokenKey, token);
-            }
+            saveOAuthState(consumer, state, req, res);
+            session.setAttribute(requestTokenKey, new Integer(0));
             String redirect = service.getAuthorizationUrl(token);
             redirect += "&state="+state;
             res.sendRedirect(redirect);
         } else {
+            session.removeAttribute(requestTokenKey);
+
             if(error != null) {
                 handleError(state, new OAuthErrorException("Oauth error with error code is: " + error, error), req, res);
                 return;
             }
-            session.removeAttribute(requestTokenKey);
-            if(!consumer.isOAuth2()) {
-                token = (Token)obj;
-            }
+
             Verifier verifier = new Verifier(verifierCode);
             Token accessToken = service.getAccessToken(token, verifier);
 
             tokenManager.saveAccessToken(consumer, new org.gatein.security.oauth.consumer.Token(accessToken.getToken(), accessToken.getSecret()));
 
-            System.out.println("AccessToken: " + accessToken.getToken());
-            clearState(session, state);
+            String redirectTo = req.getParameter(PARAM_REDIRECT_TO);
+            if(redirectTo == null) {
+                redirectTo = get(session, state, PARAM_REDIRECT_TO);
+            }
+
+            Utils.cleanAuthenticationRegistry(req, state);
+            clearOAuthState(session, state);
             redirect(redirectTo, res);
         }
     }
@@ -122,8 +138,7 @@ public class OAuthCallbackFilter implements org.exoplatform.web.filter.Filter {
         return Utils.buildService(consumer, service.getOAuthEndPoint());
     }
 
-    public String initOAuthState(OAuthConsumer consumer, HttpServletRequest request, HttpServletResponse response) {
-        String state = consumer.name + System.currentTimeMillis();
+    public void saveOAuthState(OAuthConsumer consumer, String state, HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession();
         String redirectTo = request.getParameter(PARAM_REDIRECT_TO);
         if(redirectTo == null) {
@@ -131,19 +146,13 @@ public class OAuthCallbackFilter implements org.exoplatform.web.filter.Filter {
         }
         String redirectAfterError = request.getParameter(PARAM_REDIRECT_AFTER_ERROR);
 
-        session.setAttribute(state + ".consumerName", consumer.name);
-        session.setAttribute(state + ".redirectTo", redirectTo);
-        session.setAttribute(state + ".redirectAfterError", redirectAfterError);
-
-        if(!consumer.isOAuth2()) {
-            session.setAttribute("OAUTH_STATE", state);
-        }
-
-        return state;
+        String prefix = state + ".";
+        session.setAttribute(prefix + PARAM_CONSUMER_NAME, consumer.name);
+        session.setAttribute(prefix + PARAM_REDIRECT_TO, redirectTo);
+        session.setAttribute(prefix + PARAM_REDIRECT_AFTER_ERROR, redirectAfterError);
     }
 
-    private void clearState(HttpSession session, String state) {
-        session.removeAttribute("OAUTH_STATE");
+    private void clearOAuthState(HttpSession session, String state) {
         state = state + ".";
         Enumeration<String> keys = session.getAttributeNames();
         while(keys.hasMoreElements()) {
@@ -160,8 +169,8 @@ public class OAuthCallbackFilter implements org.exoplatform.web.filter.Filter {
 
     private void handleError(String state, Exception ex, HttpServletRequest req, HttpServletResponse res) throws IOException {
         HttpSession session = req.getSession();
-        String redirectAfterError = get(session, state, "redirectAfterError");
-        clearState(session, state);
+        String redirectAfterError = get(session, state, PARAM_REDIRECT_AFTER_ERROR);
+        clearOAuthState(session, state);
         if(redirectAfterError != null) {
             session.setAttribute("OAUTH_EXCEPTION", ex);
             res.sendRedirect(redirectAfterError);

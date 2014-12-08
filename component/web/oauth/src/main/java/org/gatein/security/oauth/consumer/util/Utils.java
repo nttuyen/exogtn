@@ -1,15 +1,20 @@
 package org.gatein.security.oauth.consumer.util;
 
+import org.exoplatform.container.PortalContainer;
+import org.exoplatform.web.security.AuthenticationRegistry;
 import org.gatein.common.classloader.DelegatingClassLoader;
 import org.gatein.security.oauth.consumer.OAuthAccessor;
 import org.gatein.security.oauth.consumer.OAuthConsumer;
 import org.gatein.security.oauth.consumer.api.Google2Api;
 import org.gatein.security.oauth.consumer.api.OAuth1Api;
 import org.gatein.security.oauth.consumer.api.OAuth2Api;
+import org.gatein.security.oauth.consumer.filter.OAuthCallbackFilter;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.builder.api.Api;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by tuyennt on 12/5/14.
@@ -64,5 +69,14 @@ public class Utils {
             builder.scope(scope);
         }
         return builder.build();
+    }
+
+    public static void cleanAuthenticationRegistry(HttpServletRequest req, String state) {
+        PortalContainer container = PortalContainer.getInstance();
+        AuthenticationRegistry authReg = (AuthenticationRegistry)container.getComponentInstanceOfType(AuthenticationRegistry.class);
+
+        String prefix = state + ".";
+        authReg.removeAttributeOfClient(req, prefix + OAuthCallbackFilter.TOKEN_MANAGER_KEY);
+        authReg.removeAttributeOfClient(req, prefix + OAuthCallbackFilter.REQUEST_TOKEN_KEY);
     }
 }
