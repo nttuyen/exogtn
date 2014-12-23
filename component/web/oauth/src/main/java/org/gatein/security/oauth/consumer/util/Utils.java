@@ -24,7 +24,7 @@ public class Utils {
         Class<? extends Api> api = null;
         Api apiInstance = null;
         try {
-            String apiClass = consumer.properties.getProperty("apiClass", null);
+            String apiClass = consumer.provider.getProperty("apiClass");
             if(apiClass != null) {
                 ClassLoader tccl = Thread.currentThread().getContextClassLoader();
                 ClassLoader oauth = OAuthAccessor.class.getClassLoader();
@@ -35,10 +35,10 @@ public class Utils {
 
         } finally {
             if(api == null) {
-                String accessTokenEndpoint = consumer.properties.getProperty("accessTokenEndpoint");
-                String authorizationURL = consumer.properties.getProperty("authorizationURL");
-                String accessTokenMethod = consumer.properties.getProperty("getAccessTokenMethod");
-                String accessTokenPattern = consumer.properties.getProperty("accessTokenPattern");
+                String accessTokenEndpoint = consumer.provider.getAccessTokenEndpoint();
+                String authorizationURL = consumer.provider.getAuthorizationUrl();
+                String accessTokenMethod = consumer.provider.getProperty("getAccessTokenMethod");
+                String accessTokenPattern = consumer.provider.getProperty("accessTokenPattern");
                 if(consumer.isOAuth2()) {
                     OAuth2Api instance = new OAuth2Api(accessTokenEndpoint, authorizationURL);
                     if(accessTokenMethod != null && !accessTokenMethod.isEmpty()) {
@@ -49,7 +49,7 @@ public class Utils {
                     }
                     apiInstance = instance;
                 } else {
-                    String requestTokenEndpoint = consumer.properties.getProperty("requestTokenEndpoint");
+                    String requestTokenEndpoint = consumer.provider.getRequestTokenEndpoint();
                     apiInstance = new OAuth1Api(requestTokenEndpoint, accessTokenEndpoint, authorizationURL);
                 }
             }
@@ -64,9 +64,8 @@ public class Utils {
         } else {
             builder.provider(apiInstance);
         }
-        String scope = consumer.properties.getProperty("scope", null);
-        if(scope != null) {
-            builder.scope(scope);
+        if(consumer.scope != null) {
+            builder.scope(consumer.scope);
         }
         return builder.build();
     }

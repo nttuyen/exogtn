@@ -34,16 +34,45 @@
       </value-param>
     </init-params>
   </component>
+
+  <component>
+    <key>org.gatein.security.oauth.consumer.OAuthProviderRegistry</key>
+    <type>org.gatein.security.oauth.consumer.impl.OAuthProviderRegistryImpl</type>
+  </component>
   <component>
     <key>org.gatein.security.oauth.consumer.OAuthConsumerRegistry</key>
     <type>org.gatein.security.oauth.consumer.impl.OAuthConsumerRegistryImpl</type>
-    <init-params>
-      <value-param>
-        <name>prefixKey</name>
-        <value>${gatein.oauth.prefix:gatein.oauth}</value>
-      </value-param>
-    </init-params>
   </component>
+
+  <external-component-plugins>
+    <target-component>org.gatein.security.oauth.consumer.OAuthProviderRegistry</target-component>
+    <component-plugin>
+      <name>OAuth provider plugin</name>
+      <set-method>addOAuthProvider</set-method>
+      <type>org.gatein.security.oauth.consumer.impl.PropertiesOAuthProviderRegistryPlugin</type>
+      <init-params>
+        <value-param>
+          <name>keyPrefix</name>
+          <value>${gatein.oauth.provider.prefix:gatein.oauth.provider}</value>
+        </value-param>
+      </init-params>
+    </component-plugin>
+  </external-component-plugins>
+  <external-component-plugins>
+    <target-component>org.gatein.security.oauth.consumer.OAuthConsumerRegistry</target-component>
+    <component-plugin>
+      <name>OAuth consumer plugin</name>
+      <set-method>addOAuthConsumer</set-method>
+      <type>org.gatein.security.oauth.consumer.impl.PropertiesOAuthConsumerRegistryPlugin</type>
+      <init-params>
+        <value-param>
+          <name>keyPrefix</name>
+          <value>${gatein.oauth.consumer.prefix:gatein.oauth.consumer}</value>
+        </value-param>
+      </init-params>
+    </component-plugin>
+  </external-component-plugins>
+
 
   <external-component-plugins>
     <!-- The full qualified name of the ExtensibleFilter -->
