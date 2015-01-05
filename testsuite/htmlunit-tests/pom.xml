@@ -24,9 +24,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-      <groupId>org.gatein.portal</groupId>
-      <artifactId>exo.portal.testsuite</artifactId>
-      <version>4.2.x-PLF-SNAPSHOT</version>
+    <groupId>org.gatein.portal</groupId>
+    <artifactId>exo.portal.testsuite</artifactId>
+    <version>4.2.x-PLF-sso-SNAPSHOT</version>
   </parent>
 
   <artifactId>portal-testsuite-htmlunit-tests</artifactId>

@@ -21,21 +21,22 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>GateIn WSRP Integration</name>
 
   <groupId>org.gatein.integration</groupId>
   <artifactId>gatein-wsrp-integration-parent</artifactId>
-  <version>4.2.x-PLF-SNAPSHOT</version>
+  <version>4.2.x-PLF-sso-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
   <parent>
     <groupId>org.gatein.portal</groupId>
     <artifactId>exo.portal.parent</artifactId>
-    <version>4.2.x-PLF-SNAPSHOT</version>
+    <version>4.2.x-PLF-sso-SNAPSHOT</version>
   </parent>
 
   <description>GateIn WSRP Integration extension parent</description>
@@ -93,13 +94,13 @@
           <name>gatein.dev</name>
           <value>jbosseap6</value>
         </property>
-         </activation>
-         <modules>
-            <module>extension-config</module>
-            <module>extension-component</module>
-            <module>extension-war</module>
-            <module>extension-ear</module>
-         </modules>
-      </profile>
+      </activation>
+      <modules>
+        <module>extension-config</module>
+        <module>extension-component</module>
+        <module>extension-war</module>
+        <module>extension-ear</module>
+      </modules>
+    </profile>
   </profiles>
 </project>

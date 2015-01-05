@@ -20,18 +20,19 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.gatein.portal</groupId>
     <artifactId>exo.portal.testsuite</artifactId>
-    <version>4.2.x-PLF-SNAPSHOT</version>
+    <version>4.2.x-PLF-sso-SNAPSHOT</version>
   </parent>
 
   <groupId>org.gatein.portal</groupId>
   <artifactId>portal-testsuite-selenium-ui-tests</artifactId>
-  <version>4.2.x-PLF-SNAPSHOT</version>
+  <version>4.2.x-PLF-sso-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Selenium UI Tests for GateIn</name>
   <description>Selenium UI Tests for GateIn</description>
@@ -50,7 +51,7 @@
     <wsrp.version>v1</wsrp.version>
     <org.selenium.maven-plugin.version>1.0.1</org.selenium.maven-plugin.version>
     <cargo.timeout>240000</cargo.timeout>
-    <cargo.jvmargs.additional />
+    <cargo.jvmargs.additional/>
     <portal.path>/portal/public/classic</portal.path>
     <testng.suite.file>testng.xml</testng.suite.file>
     <method>*</method>
@@ -67,7 +68,7 @@
     <!-- Change this to INFO or WARN to reduce ant build logging -->
     <ant.logging.level>DEBUG</ant.logging.level>
   </properties>
-  
+
   <!-- no tests by default -->
   <build>
     <plugins>
@@ -120,7 +121,8 @@
                 </goals>
                 <configuration>
                   <tasks>
-                    <copy file="${basedir}/src/test/java/org/jboss/gatein/selenium/messages.properties" todir="${project.build.directory}/test-classes/org/jboss/gatein/selenium" />
+                    <copy file="${basedir}/src/test/java/org/jboss/gatein/selenium/messages.properties"
+                          todir="${project.build.directory}/test-classes/org/jboss/gatein/selenium"/>
                   </tasks>
                 </configuration>
               </execution>
