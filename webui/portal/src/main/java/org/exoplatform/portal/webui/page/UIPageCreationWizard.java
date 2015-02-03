@@ -25,6 +25,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Deque;
+import java.util.LinkedList;
 
 import org.exoplatform.portal.application.PortalRequestContext;
 import org.exoplatform.portal.config.DataStorage;
@@ -35,6 +37,7 @@ import org.exoplatform.portal.mop.SiteKey;
 import org.exoplatform.portal.mop.SiteType;
 import org.exoplatform.portal.mop.description.DescriptionService;
 import org.exoplatform.portal.mop.navigation.NavigationServiceException;
+import org.exoplatform.portal.mop.navigation.Scope;
 import org.exoplatform.portal.mop.page.PageContext;
 import org.exoplatform.portal.mop.page.PageKey;
 import org.exoplatform.portal.mop.page.PageService;
@@ -50,6 +53,8 @@ import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.portal.webui.workspace.UIPortalApplication;
 import org.exoplatform.portal.webui.workspace.UIPortalToolPanel;
 import org.exoplatform.portal.webui.workspace.UIWorkingWorkspace;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.web.url.navigation.NodeURL;
 import org.exoplatform.webui.application.WebuiRequestContext;
@@ -68,6 +73,7 @@ import org.exoplatform.webui.form.UIFormStringInput;
         @EventConfig(listeners = UIPageCreationWizard.ViewStep4ActionListener.class),
         @EventConfig(listeners = UIPageWizard.AbortActionListener.class) }))
 public class UIPageCreationWizard extends UIPageWizard {
+    private static final Log log = ExoLogger.getLogger(UIPageCreationWizard.class);
 
     public static final int FIRST_STEP = 1;
 
@@ -146,6 +152,51 @@ public class UIPageCreationWizard extends UIPageWizard {
     }
 
     /**
+     *
+     * @return UserNode selectedNode
+     */
+    private UserNode reloadFullTreeNode(UserNode node) {
+        //. We need reload selectedPageNode without filter to load full navigation tree
+        try {
+            UserNode root = Util.getUIPortal().getSelectedUserNode();
+            while (root.getParent() != null) {
+                root = root.getParent();
+            }
+
+            Deque<String> stack = new LinkedList<String>();
+            UserNode n = node;
+            while(n != null) {
+                stack.push(n.getName());
+                n = n.getParent();
+            }
+            // Ignore root nodeName
+            stack.pop();
+
+            UserPortal userPortal = Util.getPortalRequestContext().getUserPortal();
+
+            String nodeName;
+            UserNode found = root;
+            while(found != null && stack.size() > 0) {
+                nodeName = stack.pop();
+                found = found.getChild(nodeName);
+
+                if(found != null) {
+                    // Need load all children of node
+                    userPortal.updateNode(found, Scope.CHILDREN, null);
+                }
+            }
+
+            if(found != null && found.getId().equals(node.getId())) {
+                return found;
+            }
+        } catch (Exception ex) {
+            log.debug("Exception while reload full tree node", ex);
+        }
+
+        return node;
+    }
+
+    /**
      * Returns <code>true</code> if the creating node is existing already. Otherwise it returns <code>false</code>
      *
      * @return true if the creating node is existing, otherwise it's false
@@ -155,6 +206,10 @@ public class UIPageCreationWizard extends UIPageWizard {
         UIWizardPageSetInfo uiPageSetInfo = getChild(UIWizardPageSetInfo.class);
         String pageName = uiPageSetInfo.getUIStringInput(UIWizardPageSetInfo.PAGE_NAME).getValue();
         UserNode selectedPageNode = uiPageSetInfo.getSelectedPageNode();
+        if(selectedPageNode.getChildrenSize() > selectedPageNode.getChildrenCount()) {
+            // We only reload children of node if this node has some hidden children
+            selectedPageNode = this.reloadFullTreeNode(selectedPageNode);
+        }
         if (selectedPageNode.getChild(pageName) != null) {
             return true;
         }
