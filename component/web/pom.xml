@@ -40,6 +40,7 @@
     <module>security-jboss</module>
     <module>oauth-common</module>
     <module>oauth-web</module>
+    <module>oauth-plf</module>
     <module>sso</module>
   </modules>
 </project>

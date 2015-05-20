@@ -120,6 +120,32 @@
   </portlet>
 
   <portlet>
+    <description xml:lang="EN">OAuth Portlet</description>
+    <portlet-name>OAuthPortlet</portlet-name>
+    <display-name xml:lang="EN">OAuth Portlet</display-name>
+    <portlet-class>org.exoplatform.webui.application.portlet.PortletApplicationController</portlet-class>
+
+    <init-param>
+      <name>webui.configuration</name>
+      <value>/WEB-INF/conf/portlet/exoadmin/OAuthPortlet/webui/configuration.xml</value>
+    </init-param>
+
+    <expiration-cache>0</expiration-cache>
+    <supports>
+      <mime-type>text/html</mime-type>
+      <portlet-mode>edit</portlet-mode>
+    </supports>
+    <supported-locale>en</supported-locale>
+
+    <resource-bundle>locale.portlet.exoadmin.OAuthPortlet</resource-bundle>
+    <portlet-info>
+      <title>OAuth Portlet</title>
+      <short-title>OAuth Portlet</short-title>
+      <keywords>Administration</keywords>
+    </portlet-info>
+  </portlet>
+
+  <portlet>
     <description xml:lang="EN">Group Navigation Portlet</description>
     <portlet-name>GroupNavigationPortlet</portlet-name>
     <display-name xml:lang="EN">Group Navigation Portlet</display-name>

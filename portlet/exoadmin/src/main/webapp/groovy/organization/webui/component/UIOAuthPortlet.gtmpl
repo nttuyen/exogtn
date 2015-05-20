@@ -1,0 +1,17 @@
+<%
+    import javax.portlet.PortletMode;
+%>
+<%
+if(_ctx.getRequestContext().getApplicationMode() == PortletMode.VIEW) { %>
+<div>
+<%
+    for(uiChild in uicomponent.getChildren()) {
+        uicomponent.renderUIComponent(uiChild);
+    }
+%>
+</div> <%
+} else { %>
+    <div>Oauth portlet</div>
+<%
+}
+%>
