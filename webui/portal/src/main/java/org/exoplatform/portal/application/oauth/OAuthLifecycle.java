@@ -58,7 +58,7 @@ public class OAuthLifecycle implements ApplicationLifecycle<PortalRequestContext
 
     @Override
     public void onInit(Application app) throws Exception {
-        this.authRegistry = (AuthenticationRegistry)app.getApplicationServiceContainer().getComponentInstanceOfType(AuthenticationRegistry.class);
+        this.authRegistry = app.getApplicationServiceContainer().getComponentInstanceOfType(AuthenticationRegistry.class);
     }
 
     @Override

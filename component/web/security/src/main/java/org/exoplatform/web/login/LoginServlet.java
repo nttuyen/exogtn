@@ -84,6 +84,8 @@ public class LoginServlet extends AbstractHttpServlet {
 
     public static final String OAUTH_COOKIE_NAME = "oauth_rememberme";
 
+    public static final String COOKIE_LAST_LOGIN = "last_login_username";
+
     //value of this field need equals with org.gatein.security.oauth.common.OAuthConstants.ATTRIBUTE_REMEMBER_ME
     public static final String SESSION_ATTRIBUTE_REMEMBER_ME = "_rememberme";
 
@@ -203,6 +205,11 @@ public class LoginServlet extends AbstractHttpServlet {
                             req.getSession().removeAttribute(SESSION_ATTRIBUTE_REMEMBER_ME);
                         }
                     }
+
+                    Cookie cookie = new Cookie(COOKIE_LAST_LOGIN, req.getRemoteUser());
+                    cookie.setPath(req.getContextPath());
+                    cookie.setMaxAge(-1); // Cookie will be deleted when user close his browser
+                    resp.addCookie(cookie);
                 }
             } else {
                 log.debug("username or password not provided. Changing status to UNAUTHENTICATED");
