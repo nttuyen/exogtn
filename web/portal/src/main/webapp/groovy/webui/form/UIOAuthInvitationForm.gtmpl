@@ -6,13 +6,11 @@
         JavascriptManager jsManager = rcontext.getJavascriptManager();
         jsManager.require("SHARED/uiForm");
         String fieldName; %>
-<div class="UIFormWithTitle $uicomponent.id" onkeypress="javascript:SubmitAction.call(this, event);">
-<div class="TitleBar"><%=_ctx.appRes(uicomponent.getName() + ".title")%></div>
-<% uiform.begin() %>
-<div class="HorizontalLayout">
-    <div class="FormContainer">
-        <div></div>
-        <table class="UIFormGrid" summary="Component $uicomponent.id">
+<div class="uiFormWithTitle uiBox $uicomponent.id" onkeypress="javascript:SubmitAction.call(this, event);">
+<h5 class="title"><%=_ctx.appRes(uicomponent.getName() + ".title")%></h5>
+<div class="uiContentBox">
+    <% uiform.begin() %>
+        <div class="content">
             <%
             boolean required = false;
             for (field in uiform.getChildren()) {
@@ -22,49 +20,44 @@
             }
             if (required && false) {
             %>
-            <tr><td colspan="2" class="require"><%=_ctx.appRes("legend.required_field") %> (*)</td></tr>
+            <%=_ctx.appRes("legend.required_field") %> (*)
             <%
             }
             %>
-            <tr>
-                <td colspan="2" class="detectedUser">
-                    <div class="detectedUserDescription">
-                        <%=_ctx.appRes("UIOAuthInvitationForm.message.detectedUser")%>
-                        <br/>
-                        <strong><%= uicomponent.getDetectedUserName() %></strong>
-                    </div>
-                    <div class="detectedUserInviteMessage" style="margin: 20px 0 5px;"><%=_ctx.appRes("UIOAuthInvitationForm.message.inviteMessage")%></div>
-                </td>
-            </tr>
+           
+                <p>
+                    <%=_ctx.appRes("UIOAuthInvitationForm.message.detectedUser")%>
+                    <strong><%= uicomponent.getDetectedUserName() %></strong>
+                </p>
+                <p><%=_ctx.appRes("UIOAuthInvitationForm.message.inviteMessage")%></p>
+               
             <%
             for(field in uiform.getChildren()) {
             if(field.isRendered()) {
             %>
-            <tr>
+            <p class="clearfix">
                 <%fieldName = uicomponent.getLabel(field.getName());%>
                 <%if(field instanceof UIFormInputBase && !fieldName.equals(uicomponent.getId())) { %>
-                <td class="FieldLabel portlet-form-label" scope="row">
                     <%if(fieldName != null && fieldName.length() > 0) {%>
                     <label for="<%= field.getName() %>"><%=uicomponent.getLabel(field.getName()) %></label>
                     <%}%>
-                </td>
                 <% if(field instanceof UIFormInputBase && field.isEditable()) { %>
-                <td class="FieldComponent portlet-input-field"><% uiform.renderField(field) %></td>
+                    <span class="pull-right"><% uiform.renderField(field) %></span>
                 <% }else { %>
-                <td class="NonEditableField portlet-input-field"><% uiform.renderField(field) %></td>
+                    <span class="pull-right"><% uiform.renderField(field) %></span>
                 <% } %>
                 <%} else {%>
-                <td class="FieldComponent" colspan="2"><% uiform.renderField(field) %></td>
+                    <span class="pull-right"><% uiform.renderField(field) %></span>
                 <%}%>
-            </tr>
+            </p>
             <%
             }
             }
             %>
-        </table>
+        </div>
         <%//Rerender this	component with the new structure%>
         <%// start render action%>
-        <div class="UIAction">
+        <div class="uiAction uiActionBorder">
             <% for(action in uicomponent.getActions()) {
             String actionLabel = _ctx.appRes(uicomponent.getName() + ".action." + action)
             String link = uicomponent.event(action);
@@ -73,9 +66,8 @@
             <%}%>
         </div>
         <%// end render action%>
+    <%uiform.end()%>
     </div>
-</div>
-<%uiform.end()%>
 </div>
 <script language="javascript">
 function SubmitAction(event) {
